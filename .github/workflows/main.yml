@@ -1,0 +1,50 @@
+name: Build Gymbro APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build Gymbro Debug APK
+        run: |
+          if [ -f "Gymbro-GitHub/build.gradle" ]; then
+            cd Gymbro-GitHub
+          fi
+          gradle assembleDebug --no-daemon
+
+      - name: Prepare APK file
+        run: |
+          if [ -f "Gymbro-GitHub/app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp Gymbro-GitHub/app/build/outputs/apk/debug/app-debug.apk Gymbro-Build-1.0.apk
+          else
+            cp app/build/outputs/apk/debug/app-debug.apk Gymbro-Build-1.0.apk
+          fi
+
+      - name: Upload Gymbro APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gymbro-Build-1.0-APK
+          path: Gymbro-Build-1.0.apk
+          retention-days: 90
